@@ -39,12 +39,14 @@ func (t *TTY) Close() {
 }
 
 func (t *TTY) Hook(hookFn HookFn) {
-	queueChannel := make(chan rune, 100)
+	queueChannel := make(chan rune, 25)
 	var lastWasBackspace bool
 	pollerFn := func() {
 		reader := bufio.NewReader(t.Handle)
+		fmt.Printf("Opened reader %v", reader)
 		for {
 			currentCharacter, _, err := reader.ReadRune()
+			fmt.Printf("got %v", currentCharacter)
 			// If our buffer is full, throw out characters in the name of performance
 			if cap(queueChannel) == 0 {
 				continue
