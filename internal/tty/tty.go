@@ -42,10 +42,9 @@ func (t *TTY) Hook(hookFn HookFn) {
 	queueChannel := make(chan rune, 25)
 	func() {
 		reader := bufio.NewReader(t.Handle)
-		fmt.Printf("Opened reader %v", reader)
 		for {
 			currentCharacter, _, err := reader.ReadRune()
-			fmt.Printf("got %v", currentCharacter)
+			fmt.Printf("got input character %v", currentCharacter)
 			// If our buffer is full, throw out characters in the name of performance
 			if cap(queueChannel) == 0 {
 				continue
@@ -55,7 +54,9 @@ func (t *TTY) Hook(hookFn HookFn) {
 			}
 			// Avoid hooking our own edits by reading another char
 			if currentCharacter == '\b' {
+				fmt.Printf("Reading next rune to skip backspace")
 				_, _, _ = reader.ReadRune()
+				fmt.Print("Read complete")
 				continue
 			}
 			bytesToWrite := hookFn(currentCharacter)
