@@ -40,7 +40,6 @@ func (t *TTY) Close() {
 
 func (t *TTY) Hook(hookFn HookFn) {
 	queueChannel := make(chan rune, 25)
-	var lastWasBackspace bool
 	pollerFn := func() {
 		reader := bufio.NewReader(t.Handle)
 		fmt.Printf("Opened reader %v", reader)
@@ -51,16 +50,12 @@ func (t *TTY) Hook(hookFn HookFn) {
 			if cap(queueChannel) == 0 {
 				continue
 			}
-			// Avoid hooking our own input
-			if lastWasBackspace {
-				lastWasBackspace = false
-				continue
-			}
 			if err != nil {
 				log.Panicf("reading failed: %v", err)
 			}
+			// Avoid hooking our own edits by reading another char
 			if currentCharacter == '\b' {
-				lastWasBackspace = true
+				_, _, _ = reader.ReadRune()
 				continue
 			}
 			queueChannel <- currentCharacter
