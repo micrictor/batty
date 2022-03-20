@@ -77,7 +77,8 @@ func (t *TTY) Hook(hookFn HookFn) {
 
 func (t *TTY) writeToTty(bytesToWrite []byte, errorChan chan error) {
 	// Very small sleep to give the character time to initially print
-	time.Sleep(time.Millisecond * 2)
+	// Based on the default windows key repeat speed of 31ms, giving ourselves a 5ms buffer
+	time.Sleep(time.Millisecond * 26)
 	for _, b := range bytesToWrite {
 		_, _, errNo := syscall.RawSyscall(
 			syscall.SYS_IOCTL,
