@@ -1,6 +1,8 @@
 package tty
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -35,28 +37,25 @@ func (t *TTY) Hook(hookFn HookFn) {
 	queueChannel := make(chan rune, 100)
 	var lastWasBackspace bool
 	go func() {
-		buf := make([]byte, 1)
+		reader := bufio.NewReader(t.Handle)
 		for {
-			n, err := t.Handle.Read(buf)
+			b, err := reader.ReadByte()
 			// Avoid hooking our own input
 			if lastWasBackspace {
 				lastWasBackspace = false
 				continue
 			}
 			if err != nil {
-				if err == io.EOF {
+				if errors.Is(err, io.EOF) {
 					break
 				}
 				log.Panicf("reading failed: %v", err)
 			}
-			if n == 0 {
-				continue
-			}
-			if buf[0] == byte(8) {
+			if b == byte(8) {
 				lastWasBackspace = true
 				continue
 			}
-			queueChannel <- rune(buf[0])
+			queueChannel <- rune(b)
 		}
 	}()
 

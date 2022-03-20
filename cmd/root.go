@@ -58,10 +58,11 @@ func cmdRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("Failed to get tty for read/write: %v", err)
 	}
+	defer t.Close()
 
 	t.Hook(typoHook)
 
-	fmt.Print("TTY hooked, press q to exit")
+	fmt.Print("TTY hooked, press q + enter to exit")
 	bufio.NewReader(os.Stdin).ReadBytes('q')
 }
 
