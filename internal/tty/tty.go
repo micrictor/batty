@@ -40,7 +40,7 @@ func (t *TTY) Close() {
 
 func (t *TTY) Hook(hookFn HookFn) {
 	queueChannel := make(chan rune, 25)
-	func() {
+	go func() {
 		reader := bufio.NewReader(t.Handle)
 		for {
 			currentCharacter, _, err := reader.ReadRune()
