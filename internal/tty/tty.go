@@ -40,7 +40,7 @@ func (t *TTY) Close() {
 
 func (t *TTY) Hook(hookFn HookFn) {
 	queueChannel := make(chan rune, 25)
-	pollerFn := func() {
+	func() {
 		reader := bufio.NewReader(t.Handle)
 		fmt.Printf("Opened reader %v", reader)
 		for {
@@ -58,19 +58,10 @@ func (t *TTY) Hook(hookFn HookFn) {
 				_, _, _ = reader.ReadRune()
 				continue
 			}
-			queueChannel <- currentCharacter
-		}
-	}
-	workerFn := func() {
-		for inputCharacter := range queueChannel {
-			bytesToWrite := hookFn(inputCharacter)
+			bytesToWrite := hookFn(currentCharacter)
 			go t.writeToTty(bytesToWrite, make(chan error))
 		}
-	}
-	for i := 0; i < 5; i++ {
-		go pollerFn()
-		go workerFn()
-	}
+	}()
 }
 
 func (t *TTY) writeToTty(bytesToWrite []byte, errorChan chan error) {
