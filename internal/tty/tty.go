@@ -2,9 +2,7 @@ package tty
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"syscall"
@@ -57,9 +55,6 @@ func (t *TTY) Hook(hookFn HookFn) {
 				continue
 			}
 			if err != nil {
-				if errors.Is(err, io.EOF) {
-					break
-				}
 				log.Panicf("reading failed: %v", err)
 			}
 			if currentCharacter == '\b' {
