@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -75,6 +76,8 @@ func (t *TTY) Hook(hookFn HookFn) {
 }
 
 func (t *TTY) writeToTty(bytesToWrite []byte, errorChan chan error) {
+	// Very small sleep to give the character time to initially print
+	time.Sleep(time.Millisecond * 2)
 	for _, b := range bytesToWrite {
 		_, _, errNo := syscall.RawSyscall(
 			syscall.SYS_IOCTL,
