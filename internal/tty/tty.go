@@ -36,10 +36,14 @@ func (t *TTY) Close() {
 func (t *TTY) Hook(hookFn HookFn) {
 	queueChannel := make(chan rune, 100)
 	var lastWasBackspace bool
-	go func() {
+	pollerFn := func() {
 		reader := bufio.NewReader(t.Handle)
 		for {
 			b, err := reader.ReadByte()
+			// If our buffer is full, throw out characters in the name of performance
+			if cap(queueChannel) == 0 {
+				continue
+			}
 			// Avoid hooking our own input
 			if lastWasBackspace {
 				lastWasBackspace = false
@@ -57,15 +61,15 @@ func (t *TTY) Hook(hookFn HookFn) {
 			}
 			queueChannel <- rune(b)
 		}
-	}()
-
+	}
 	workerFn := func() {
 		for inputCharacter := range queueChannel {
 			bytesToWrite := hookFn(inputCharacter)
 			go t.writeToTty(bytesToWrite, make(chan error))
 		}
 	}
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
+		go pollerFn()
 		go workerFn()
 	}
 }
